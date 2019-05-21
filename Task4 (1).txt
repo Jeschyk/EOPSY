@@ -1,0 +1,303 @@
+Jan Jasionek Task 4
+
+--[ YOUR TASK ]-------------------------------------------------------
+
+Create a command file that maps any 8 pages of physical memory to the
+first 8 pages of virtual memory, and then reads from one virtual memory
+address on each of the 64 virtual pages. Step through the simulator one
+operation at a time and see if you can predict which virtual memory
+addresses cause page faults. What page replacement algorithm is being
+used?
+
+Locate in the sources and describe to the instructor the page 
+replacement algorithm.
+
+----------------------------------------------------------------------
+
+Conclusions:
+
+According to the task, I have mapped 8 pages of physical memory to the first 8 pages of virtual memory (0-7),
+the rest of pages (8-63) have been mapped automatically.
+Furthermore I have changed addressrandix from 16 to 10 to obtain values in decimal.
+Number of pages was 64 by default and I didn not change this value.
+The pagesize was not descripted in the task so I have set it to 64 to obtain clear results.
+
+Checking the tracefile and Memory Management window, we can clearly see that the last mapped is the 31st page with high at 2047.
+Of course it is the last one because there are only 32 physical pages (from 0 to 31).
+As expected, during mapping of the 32nd virtual page (high at 2111) there is a page fault, the physical page is assigned as -1
+and FIFO(first-in first-out) Page Replacement Algorithm is used.
+The algorithm replaces the page, which has been in the memory for the longest time with the first waiting,
+not assigned page with page fault signaled.
+The algorithm uses while loop to search through the current memory contents for a candidate to be replaced and at the same time making sure that virtual page number is not exceeded.
+However the algorithm does not check if the page is used often or not, just checking the time in memory.
+
+
+----------------------------------------------------------------------
+
+Observations:
+
+Memory.conf:
+
+// memset  virt page #  physical page #  R (read from)  M (modified) inMemTime (ns) lastTouchTime (ns)
+memset 0 0 0 0 0 0      
+memset 1 1 0 0 0 0      
+memset 2 2 0 0 0 0      
+memset 3 3 0 0 0 0      
+memset 4 4 0 0 0 0      
+memset 5 5 0 0 0 0      
+memset 6 6 0 0 0 0      
+memset 7 7 0 0 0 0      
+          
+
+// enable_logging 'true' or 'false'
+// When true specify a log_file or leave blank for stdout
+enable_logging true
+
+// log_file <FILENAME>
+// Where <FILENAME> is the name of the file you want output
+// to be print to.
+log_file tracefile
+
+// page size, defaults to 2^14 and cannot be greater than 2^26
+// pagesize <single page size (base 10)> or <'power' num (base 2)>
+pagesize 64
+
+// addressradix sets the radix in which numerical values are displayed
+// 2 is the default value
+// addressradix <radix>
+
+----------------------------------------------------------------------
+
+Commands:
+
+// Enter READ/WRITE commands into this file
+// READ <OPTIONAL number type: bin/hex/oct> <virtual memory address or random>
+// WRITE <OPTIONAL number type: bin/hex/oct> <virtual memory address or random>
+READ 63
+READ 127
+READ 191
+READ 255
+READ 319
+READ 383
+READ 447
+READ 511
+READ 639
+READ 703
+READ 767
+READ 831
+READ 895
+READ 959
+READ 1023
+READ 1087
+READ 1151
+READ 1215
+READ 1279
+READ 1343
+READ 1407
+READ 1471
+READ 1535
+READ 1599
+READ 1663
+READ 1727
+READ 1791
+READ 1855
+READ 1919
+READ 1983
+READ 2047
+READ 2111
+READ 2175
+READ 2239
+READ 2303
+READ 2367
+READ 2431
+READ 2495
+READ 2559
+READ 2623
+READ 2687
+READ 2751
+READ 2815
+READ 2879
+READ 2943
+READ 3007
+READ 3071
+READ 3135
+READ 3199
+READ 3263
+READ 3327
+READ 3391
+READ 3455
+READ 3519
+READ 3583
+READ 3647
+READ 3711
+READ 3775
+READ 3839
+READ 3903
+READ 3967
+READ 4031
+READ 4032
+
+----------------------------------------------------------------------
+
+tracefile:
+
+READ 63 ... okay
+READ 127 ... okay
+READ 191 ... okay
+READ 255 ... okay
+READ 319 ... okay
+READ 383 ... okay
+READ 447 ... okay
+READ 511 ... okay
+READ 639 ... okay
+READ 703 ... okay
+READ 767 ... okay
+READ 831 ... okay
+READ 895 ... okay
+READ 959 ... okay
+READ 1023 ... okay
+READ 1087 ... okay
+READ 1151 ... okay
+READ 1215 ... okay
+READ 1279 ... okay
+READ 1343 ... okay
+READ 1407 ... okay
+READ 1471 ... okay
+READ 1535 ... okay
+READ 1599 ... okay
+READ 1663 ... okay
+READ 1727 ... okay
+READ 1791 ... okay
+READ 1855 ... okay
+READ 1919 ... okay
+READ 1983 ... okay
+READ 2047 ... okay
+READ 2111 ... page fault
+READ 2175 ... page fault
+READ 2239 ... page fault
+READ 2303 ... page fault
+READ 2367 ... page fault
+READ 2431 ... page fault
+READ 2495 ... page fault
+READ 2559 ... page fault
+READ 2623 ... page fault
+READ 2687 ... page fault
+READ 2751 ... page fault
+READ 2815 ... page fault
+READ 2879 ... page fault
+READ 2943 ... page fault
+READ 3007 ... page fault
+READ 3071 ... page fault
+READ 3135 ... page fault
+READ 3199 ... page fault
+READ 3263 ... page fault
+READ 3327 ... page fault
+READ 3391 ... page fault
+READ 3455 ... page fault
+READ 3519 ... page fault
+READ 3583 ... page fault
+READ 3647 ... page fault
+READ 3711 ... page fault
+READ 3775 ... page fault
+READ 3839 ... page fault
+READ 3903 ... page fault
+READ 3967 ... page fault
+READ 4031 ... page fault
+READ 4032 ... page fault
+
+----------------------------------------------------------------------
+
+Page replacement algorithm-PageFault.java:
+
+/* It is in this file, specifically the replacePage function that will
+   be called by MemoryManagement when there is a page fault.  The 
+   users of this program should rewrite PageFault to implement the 
+   page replacement algorithm.
+*/
+
+  // This PageFault file is an example of the FIFO Page Replacement 
+  // Algorithm as described in the Memory Management section.
+
+import java.util.*;
+
+public class PageFault {
+
+  /**
+   * The page replacement algorithm for the memory management sumulator.
+   * This method gets called whenever a page needs to be replaced.
+   * <p>
+   * The page replacement algorithm included with the simulator is 
+   * FIFO (first-in first-out).  A while or for loop should be used 
+   * to search through the current memory contents for a canidate 
+   * replacement page.  In the case of FIFO the while loop is used 
+   * to find the proper page while making sure that virtPageNum is 
+   * not exceeded.
+   * <pre>
+   *   Page page = ( Page ) mem.elementAt( oldestPage )
+   * </pre>
+   * This line brings the contents of the Page at oldestPage (a 
+   * specified integer) from the mem vector into the page object.  
+   * Next recall the contents of the target page, replacePageNum.  
+   * Set the physical memory address of the page to be added equal 
+   * to the page to be removed.
+   * <pre>
+   *   controlPanel.removePhysicalPage( oldestPage )
+   * </pre>
+   * Once a page is removed from memory it must also be reflected 
+   * graphically.  This line does so by removing the physical page 
+   * at the oldestPage value.  The page which will be added into 
+   * memory must also be displayed through the addPhysicalPage 
+   * function call.  One must also remember to reset the values of 
+   * the page which has just been removed from memory.
+   *
+   * @param mem is the vector which contains the contents of the pages 
+   *   in memory being simulated.  mem should be searched to find the 
+   *   proper page to remove, and modified to reflect any changes.  
+   * @param virtPageNum is the number of virtual pages in the 
+   *   simulator (set in Kernel.java).  
+   * @param replacePageNum is the requested page which caused the 
+   *   page fault.  
+   * @param controlPanel represents the graphical element of the 
+   *   simulator, and allows one to modify the current display.
+   */
+  public static void replacePage ( Vector mem , int virtPageNum , int replacePageNum , ControlPanel controlPanel ) 
+  {
+    int count = 0;
+    int oldestPage = -1;
+    int oldestTime = 0;
+    int firstPage = -1;
+    int map_count = 0;
+    boolean mapped = false;
+
+    while ( ! (mapped) || count != virtPageNum ) {
+      Page page = ( Page ) mem.elementAt( count );
+      if ( page.physical != -1 ) {
+        if (firstPage == -1) {
+          firstPage = count;
+        }
+        if (page.inMemTime > oldestTime) {
+          oldestTime = page.inMemTime;
+          oldestPage = count;
+          mapped = true;
+        }
+      }
+      count++;
+      if ( count == virtPageNum ) {
+        mapped = true;
+      }
+    }
+    if (oldestPage == -1) {
+      oldestPage = firstPage;
+    }
+    Page page = ( Page ) mem.elementAt( oldestPage );
+    Page nextpage = ( Page ) mem.elementAt( replacePageNum );
+    controlPanel.removePhysicalPage( oldestPage );
+    nextpage.physical = page.physical;
+    controlPanel.addPhysicalPage( nextpage.physical , replacePageNum );
+    page.inMemTime = 0;
+    page.lastTouchTime = 0;
+    page.R = 0;
+    page.M = 0;
+    page.physical = -1;
+  }
+}
